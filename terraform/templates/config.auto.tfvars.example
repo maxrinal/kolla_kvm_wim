@@ -1,0 +1,17 @@
+network_name="k3snet"
+network_prefix="192.168.123"
+search_domain="ingress.lab.home"
+load_balancer_ip="240"
+load_balancer_domain_list=["keycloak","prometheus","grafana","alert","oauth","httpdump","sidecar"]
+
+user_name="vmadmin"
+user_default_password="Test123"
+
+nombres= ["master", "worker1", "worker2"]
+ips= ["11", "12", "13"]
+macs=["52:54:00:50:99:c5", "52:54:00:0e:87:be", "52:54:00:9d:90:38"]
+lista_cpu=[2,2,2]
+lista_ram=[2048,1536,1536]
+
+os_base_path = "/home/repo/images/ubuntu20.qcow2"
+

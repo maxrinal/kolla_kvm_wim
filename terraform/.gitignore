@@ -1,0 +1,9 @@
+.terraform
+*.backup
+*.tfstate
+*.hcl
+ssh
+tmp
+*.original
+*.tfvars
+.terraform.tfstate.lock.info
