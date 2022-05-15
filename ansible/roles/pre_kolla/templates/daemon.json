@@ -1,0 +1,9 @@
+{
+    "registry-mirrors" : [ "http://10.30.188.78:5000" ],
+    "insecure-registries" : [ "10.30.188.78:5000" ],
+    "experimental": true,
+    "default-address-pools":
+     [
+       {"base":"192.168.0.0/16","size":26}
+     ]
+}

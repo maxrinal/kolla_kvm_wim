@@ -7,3 +7,5 @@ tmp
 *.original
 *.tfvars
 .terraform.tfstate.lock.info
+*.ignore_this_file
+tmp/*

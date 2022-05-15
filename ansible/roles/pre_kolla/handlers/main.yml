@@ -1,0 +1,65 @@
+# cd /etc/kolla
+# kolla-genpwd
+# sed -i 's/^keystone_admin_password: .*/keystone_admin_password: kolla/g' passwords.yml
+
+# # Vaidamos que la clave de keystone este ok
+# cat passwords.yml  | grep ^keystone_admin_password
+
+
+- name: kolla-genpwd
+  command: "{{ kolla_virtual_env_dir }}/bin/kolla-genpwd"
+  args:
+    chdir: /etc/kolla
+
+
+- name: kolla-genpwd-2
+  lineinfile:
+    path: /etc/kolla/passwords.yml
+    regexp: '^keystone_admin_password'
+    line: 'keystone_admin_password: kolla'
+
+
+# - name: Insert/Update "Match User" configuration block in /etc/ssh/sshd_config
+#   blockinfile:
+#     path: /etc/ssh/sshd_config
+#     block: |
+#       Match User ansible-agent
+#       PasswordAuthentication no
+
+- name: kolla-globals
+  template:
+    src: globals.yml
+    dest: /etc/kolla/globals.yml
+    group: "{{kolla_user}}"
+    # mode: 0640
+    backup: yes
+  # notify:
+  # - kolla-aio-bootstrap-servers
+
+
+- name: kolla-aio-bootstrap-servers
+  command: "{{ kolla_virtual_env_dir }}/bin/kolla-ansible -i all-in-one bootstrap-servers"
+  args:
+    chdir: /etc/kolla
+
+
+
+
+
+# # Bootstrapeamos
+# kolla-ansible -i all-in-one bootstrap-servers
+# # borramos todo del archivo /etc/hosts (solo para centos)
+# # ejecutamos pre checks
+# kolla-ansible -i all-in-one prechecks
+# # Valido el pull de imagenes
+# kolla-ansible -i all-in-one pull
+# # Ejecuto el deploy
+# kolla-ansible -i all-in-one deploy
+# # kolla-ansible -i all-in-one reconfigure
+# # Generate an openrc file with administrator user credentials set
+# kolla-ansible post-deploy
+# cat /etc/kolla/admin-openrc.sh
+# # Destroy cluster
+# # kolla-ansible -i all-in-one destroy --yes-i-really-really-mean-it
+# # sudo rm -Rf /etc/kolla
+

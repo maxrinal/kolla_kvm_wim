@@ -1,0 +1,4 @@
+# kolla_virtual_env_dir : /home/appserv/kolla
+kolla_virtual_env_dir : "/home/{{ kolla_user }}/kolla-venv"
+# kolla_user : centos
+kolla_user : "{{ ansible_user }}"

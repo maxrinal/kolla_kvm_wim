@@ -1,0 +1,144 @@
+
+- name: Install basic packages Generic SO
+  become: true
+  package:
+    update_cache: yes
+    pkg:
+    - python3-pip
+    - gcc
+    - tmux
+    - vim
+    - telnet
+    - net-tools
+    - jq
+    - python3-venv
+    # - bind-utils
+    # - python3-devel
+    # - libffi-devel
+    # - openssl-devel
+    # - python3-libselinux
+
+
+- name: Install basic packages Centos/Redhat
+  become: true
+  package:
+    update_cache: yes
+    pkg:
+    - bind-utils
+    - python3-devel
+    - libffi-devel
+    - openssl-devel
+    - python3-libselinux
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+
+
+
+
+- name: Install basic packages Debian/Ubuntu
+  become: true
+  package:
+    update_cache: yes
+    pkg:
+    - screen
+    - bmon
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+
+
+
+
+- name:  Install upgrade pip
+  # become: false
+  pip:
+    virtualenv: "{{ kolla_virtual_env_dir }}"
+    virtualenv_command: /bin/python3 -m venv
+    extra_args: --upgrade
+    name:
+    - pip
+
+
+- name:  Install ansible
+  # become: false
+  pip:
+    virtualenv: "{{ kolla_virtual_env_dir }}"
+    virtualenv_command: /bin/python3 -m venv
+    extra_args: --upgrade
+    name:
+    - kolla-ansible
+    # - 'ansible<2.10'
+    - 'ansible<2.11'
+    - 'jinja2==3.0.3'
+    - python-openstackclient
+    - python-barbicanclient
+    - python-cinderclient
+    - python-designateclient
+    - python-glanceclient
+    - python-heatclient
+    - python-magnumclient
+    - python-neutronclient
+    - python-novaclient
+    - python-troveclient
+    
+    # pip uninstall jinja2
+    # pip install jinja2==3.0.3
+
+    # No andan
+    # - python-ceilometerclient
+    # - python-cloudkittyclient
+    # - python-fuelclient
+    # - python-manilaclient
+    # - python-mistralclient
+    # - python-monascaclient
+    # - python-muranoclient
+    # - python-saharaclient
+    # - python-senlinclient
+    # - python-swiftclient
+    # - python-gnocchiclient
+
+- name: Create etc kolla directory
+  become: true
+  file:
+    path: /etc/kolla
+    state: directory
+    # mode: '0755'
+    owner: "{{ kolla_user }}"
+    group: "{{ kolla_user }}"
+    directory_mode: recursive
+
+
+- name: Copy ansible base files
+  # become: true
+  copy:
+    remote_src: true
+    src: "{{ kolla_virtual_env_dir }}/share/kolla-ansible/etc_examples/kolla/{{ item }}"
+    dest: /etc/kolla/
+    force: no
+    mode: preserve
+    # backup: yes
+    
+  with_items:
+   - "globals.yml"
+   - "passwords.yml"
+  notify:
+  # Si no tengo archivo de password debeo ejecutar las llamadas de gen-pwd
+  - kolla-genpwd
+  - kolla-genpwd-2
+  # Si no tengo archivo globals debo ejecutar el copy globals
+  - kolla-globals
+
+
+
+- name: Copy ansible base files
+  # become: true
+  copy:
+    remote_src: true
+    src: "{{ kolla_virtual_env_dir }}/share/kolla-ansible/ansible/inventory/{{ item }}"
+    dest: /etc/kolla
+    force: no
+    mode: preserve
+    # backup: yes
+  with_items:
+   - "all-in-one"
+   - "multinode"
+
+

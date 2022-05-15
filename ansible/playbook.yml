@@ -1,0 +1,9 @@
+---
+- name: Install
+  hosts: all
+  become: no
+  roles: 
+  # Borrar todo de /etc/hosts
+  - pre_kolla
+
+ 
