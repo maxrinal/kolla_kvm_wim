@@ -1,9 +1,6 @@
-variable "nombre"    { default = "kolla-deb" }
-variable "user_name" { default = "vmadmin" }
-variable "user_pass" { default = "Test123456" }
-
 module "cloud_init_disk" {
-  source = "/home/repo/tf_modules/cloud_init"
+  # source = "/home/repo/tf_modules/cloud_init"
+  source = "git::https://github.com/maxrinal/tf_modules.git//cloud_init"
 
   nombre = var.nombre
 
@@ -14,7 +11,8 @@ module "cloud_init_disk" {
 }
 
 module "node" {
-  source = "/home/repo/tf_modules/kvm_complex_instance"
+  # source = "/home/repo/tf_modules/kvm_complex_instance"
+  source = "git::https://github.com/maxrinal/tf_modules.git//kvm_complex_instance"
 
   depends_on= [
     module.cloud_init_disk
@@ -31,15 +29,9 @@ module "node" {
   # cloud_init_data = ""
 
 
-  assigned_cpu = 6
-  assigned_memory_mb  = 16384
-  # os_base_path = "/home/repo/images/cirros-0.5.2-x86_64-disk.img"
-  # os_base_path = "/home/repo/images/focal-server-cloudimg-amd64.img"
-  os_base_path = "/home/repo/images/debian-11-generic-amd64-20211011-792.qcow2"
-  # os_base_path = "/home/repo/images/debian-11-genericcloud-amd64-20211011-792.qcow2"
-  # os_base_path = "/home/repo/images/debian-10-generic-amd64-20211011-792.qcow2"
-  # os_base_path = "/home/repo/images/debian-10-genericcloud-amd64-20211011-792.qcow2"
-  # os_base_path = "/home/repo/images/CentOS-Stream-GenericCloud-8-20210603.0.x86_64.qcow2"
+  assigned_cpu        = var.cpu
+  assigned_memory_mb  = var.memory_mb
+  os_base_path        = var.os_path
 
   # disk_list             = { "docker" : 1024, "data" : 512 }
   # network_name_list     = ["default", "default"]
@@ -47,7 +39,8 @@ module "node" {
   network_name_list = ["default","default"]
   network_wait_dhcp_lease = true
   
-  os_disk_size_mb = 20*1024
+  # os_disk_size_mb = 20*1024
+  os_disk_size_mb = var.root_disk_size_mb
 }
 
 
@@ -72,6 +65,7 @@ resource "local_file" "inventory_ansible" {
     {
       host_list  = module.node.*.clean_out
       hosts_user = var.user_name
+      ansible_extra_vars = var.ansible_extra_vars
     }
   )
   filename = "../tmp/hosts.yml"
@@ -80,19 +74,18 @@ resource "local_file" "inventory_ansible" {
 output "ssh_conn" {
   value = <<EOT
 ssh -o StrictHostKeyChecking=no vmadmin@${module.node.ipv4_addressess[0]}
-ssh -o StrictHostKeyChecking=no vmadmin@192.168.122.254 cat kolla-venv/share/kolla-ansible/etc_examples/kolla/globals.yml > ../tmp/globals_default.yml
+ssh -o StrictHostKeyChecking=no vmadmin@${module.node.ipv4_addressess[0]} cat kolla-venv/share/kolla-ansible/etc_examples/kolla/globals.yml > ../tmp/globals_default.yml
 EOT
 }
 
 
-resource "null_resource" "excute_ansible" {
+resource "null_resource" "execute_ansible" {
+  count  = ( var.EXECUTE_ANSIBLE == true ? 1:0)
+
   depends_on = [
-    # resource.libvirt_domain.complex_node_kvm_v1,
     resource.local_file.inventory_ansible
   ]
   provisioner "local-exec" {
-    # command = "ansible-playbook ../ansible/playbook.yml -i ../tmp/hosts.yml"
-    # command = "ANSIBLE_FORCE_COLOR=1 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory/mycluster/hosts.yaml --become --become-user=root cluster.yml"
     command = "ANSIBLE_FORCE_COLOR=1 ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook ../ansible/playbook.yml -i ../tmp/hosts.yml"
   }
 }

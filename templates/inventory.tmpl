@@ -2,3 +2,9 @@
 %{ for index, curr_host in host_list ~}
 ${curr_host.name}  ansible_host=${curr_host.ipv4_addressess[0]} ansible_user=${hosts_user}
 %{ endfor ~}
+
+
+
+[all:vars]
+# Non Evaluated from xxx.auto.tfvars ansible_extra_vars,etc
+${ansible_extra_vars}

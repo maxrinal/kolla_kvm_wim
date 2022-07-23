@@ -3,18 +3,6 @@
 Kolla Kvm WIM nos permite desplegar openstack all in one basado en modulos personalizados de kvm y terraform
 
 
-Obtencion de módulos
-```bash 
-# Por default asumimos que tenemos los modulos en el siguiente directorio, caso contrario debemos modificar el directorio en terraform
-TF_MODULES_DEST_DIR=/home/repo/tf_modules
-TF_MODULES_GIT_REPO=git@github.com:maxrinal/tf_modules.git
-
-sudo mkdir -m 777 -p $TF_MODULES_DEST_DIR
-
-git clone ${TF_MODULES_GIT_REPO} ${TF_MODULES_DEST_DIR} 
-
-```
-
 
 Creamos la vm via terraform, desplegamos inventario inicial con ansible e instalamos precondiciones para kolla
 
@@ -23,6 +11,7 @@ cd terraform_kvm
 
 
 terraform init
+# terraform plan -out="plan" -var 'EXECUTE_ANSIBLE=true'
 terraform plan -out="plan"
 terraform apply plan
 
@@ -216,6 +205,6 @@ Para ahorrar espacio en nuestro directorio podremos descargarlos de forma global
 ```bash
 mkdir -p $HOME/.terraform.d/plugin-cache
 cat <<EOT | tee $HOME/.terraformrc
-plugin_cache_dir   = "\$HOME/.terraform.d/plugin-cache"
+plugin_cache_dir = "\$HOME/.terraform.d/plugin-cache"
 EOT
 ```
